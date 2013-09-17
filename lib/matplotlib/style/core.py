@@ -13,6 +13,7 @@ Core functions and attributes for the matplotlib style library:
 import os
 import re
 import contextlib
+import urllib2
 
 import numpy as np
 import matplotlib as mpl
@@ -28,6 +29,13 @@ USER_LIBRARY_PATHS = [os.path.join('~', '.matplotlib', 'stylelib')]
 STYLE_EXTENSION = 'mplstyle'
 STYLE_FILE_PATTERN = re.compile('([\S]+).%s$' % STYLE_EXTENSION)
 
+url_regex = re.compile(
+        r'^(?:http|ftp)s?://'
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+        r'localhost|'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        r'(?::\d+)?'
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 def is_style_file(filename):
     """Return True if the filename looks like a style file."""
@@ -48,15 +56,18 @@ def use(name):
         name = [name]
 
     for style in name:
-        if is_style_file(style):
-            settings = mpl.rc_params_in_file(style)
-            mpl.rcParams.update(settings)
-        elif style not in library:
-            msg = ("'%s' not found in the style library. "
-                   "See `style.available` for list of available styles.")
-            raise ValueError(msg % style)
-        else:
+        if style in library:
             mpl.rcParams.update(library[style])
+        else:
+            try:
+                settings = mpl.rc_params_in_file(style)
+                mpl.rcParams.update(settings)
+            except:
+                msg = ("'%s' not found in the style library and input is "
+                       "not a valid URL. See `style.available` for list of "
+                       "available styles.")
+                raise ValueError(msg % style)
+
 
 
 @contextlib.contextmanager
