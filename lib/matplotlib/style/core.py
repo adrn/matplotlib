@@ -13,7 +13,6 @@ Core functions and attributes for the matplotlib style library:
 import os
 import re
 import contextlib
-import urllib2
 
 import numpy as np
 import matplotlib as mpl
